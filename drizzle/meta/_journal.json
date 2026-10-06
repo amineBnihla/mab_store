@@ -15,6 +15,20 @@
       "when": 1790511673225,
       "tag": "0001_redundant_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790536700421,
+      "tag": "0002_rapid_boom_boom",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791134251539,
+      "tag": "0003_curly_kree",
+      "breakpoints": true
     }
   ]
 }

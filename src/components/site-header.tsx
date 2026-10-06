@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { BagIcon, CloseIcon, MenuIcon, SearchIcon, UserIcon } from "@/components/icons";
+import { SearchForm } from "@/components/search-form";
 import { primaryNav } from "@/lib/catalog";
 import { site } from "@/lib/site";
 
@@ -14,7 +15,9 @@ const OVERLAY_ROUTES = new Set(["/"]);
 export function SiteHeader() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [panel, setPanel] = useState<"menu" | "search" | null>(null);
+  const menuOpen = panel === "menu";
+  const searchOpen = panel === "search";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -24,8 +27,8 @@ export function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    if (!panel) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPanel(null);
     const root = document.documentElement;
     root.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
@@ -33,10 +36,18 @@ export function SiteHeader() {
       root.style.overflow = "";
       window.removeEventListener("keydown", onKey);
     };
-  }, [menuOpen]);
+  }, [panel]);
 
-  const transparent = OVERLAY_ROUTES.has(pathname) && !scrolled && !menuOpen;
-  const closeMenu = () => setMenuOpen(false);
+  const transparent = OVERLAY_ROUTES.has(pathname) && !scrolled && !panel;
+  const closePanel = () => setPanel(null);
+  const toggle = (next: "menu" | "search") => setPanel((open) => (open === next ? null : next));
+  const searchButtonProps = {
+    type: "button" as const,
+    "aria-label": searchOpen ? "Close search" : "Search",
+    "aria-expanded": searchOpen,
+    "aria-controls": "site-search",
+    onClick: () => toggle("search"),
+  };
 
   return (
     <header
@@ -55,18 +66,18 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <button type="button" className="btn-icon -ml-2.5 lg:hidden" aria-label="Search">
-            <SearchIcon />
+          <button {...searchButtonProps} className="btn-icon -ml-2.5 lg:hidden">
+            {searchOpen ? <CloseIcon /> : <SearchIcon />}
           </button>
         </div>
 
-        <Link href="/" className="text-wordmark" onClick={closeMenu}>
+        <Link href="/" className="text-wordmark" onClick={closePanel}>
           {site.name}
         </Link>
 
         <div className="flex items-center">
-          <button type="button" className="btn-icon hidden lg:inline-flex" aria-label="Search">
-            <SearchIcon />
+          <button {...searchButtonProps} className="btn-icon hidden lg:inline-flex">
+            {searchOpen ? <CloseIcon /> : <SearchIcon />}
           </button>
           <Link href="/account" className="btn-icon hidden sm:inline-flex" aria-label="Account">
             <UserIcon />
@@ -79,7 +90,7 @@ export function SiteHeader() {
             className="btn-icon -mr-2.5 w-auto gap-2 px-2.5 text-nav"
             aria-expanded={menuOpen}
             aria-controls="site-menu"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => toggle("menu")}
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
             <span className="hidden md:inline">{menuOpen ? "Close" : "Menu"}</span>
@@ -87,6 +98,23 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
+
+      {searchOpen && (
+        <div id="site-search" className="fixed inset-x-0 top-header bottom-0 flex flex-col">
+          <div className="bg-background text-foreground shadow-[0_1px_0_var(--line)]">
+            <div className="container-page max-w-prose py-8 md:py-12">
+              <SearchForm autoFocus onSubmit={closePanel} />
+            </div>
+          </div>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden
+            className="flex-1 cursor-default bg-overlay"
+            onClick={closePanel}
+          />
+        </div>
+      )}
 
       {menuOpen && (
         <div
@@ -100,7 +128,7 @@ export function SiteHeader() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      onClick={closeMenu}
+                      onClick={closePanel}
                       className="link-quiet text-2xl md:text-3xl"
                     >
                       {item.label}
@@ -113,9 +141,9 @@ export function SiteHeader() {
               <div>
                 <p className="text-eyebrow mb-3">Services</p>
                 <ul className="space-y-2 text-xs">
-                  <li><Link href="/contact" onClick={closeMenu} className="link">Contact us</Link></li>
-                  <li><Link href="/boutiques" onClick={closeMenu} className="link">Book an appointment</Link></li>
-                  <li><Link href="/account" onClick={closeMenu} className="link">My account</Link></li>
+                  <li><Link href="/contact" onClick={closePanel} className="link">Contact us</Link></li>
+                  <li><Link href="/boutiques" onClick={closePanel} className="link">Book an appointment</Link></li>
+                  <li><Link href="/account" onClick={closePanel} className="link">My account</Link></li>
                 </ul>
               </div>
             </div>

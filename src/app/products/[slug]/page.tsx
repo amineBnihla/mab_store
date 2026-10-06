@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AddToBagButton } from "@/components/cart/add-to-bag-button";
 import { ChevronDownIcon, HeartIcon, PhoneIcon, PinIcon, PlusIcon } from "@/components/icons";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductRail } from "@/components/product/product-rail";
@@ -70,9 +71,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         >
           <div className="space-y-4">
             <StockStatus stock={product.stock} />
-            <button type="button" className="btn btn-primary btn-block" disabled={soldOut}>
-              {soldOut ? "Out of stock" : "Add to bag"}
-            </button>
+            <AddToBagButton productId={product.id} soldOut={soldOut} />
           </div>
 
           <ul className="space-y-5 text-xs">
@@ -155,7 +154,11 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             </Link>
           </li>
           <li aria-hidden>/</li>
-          <li>{product.category}</li>
+          <li>
+            <Link href={`/categories/${product.categorySlug}`} className="link">
+              {product.category}
+            </Link>
+          </li>
           <li aria-hidden>/</li>
           <li aria-current="page" className="text-muted-foreground">
             {product.name}
